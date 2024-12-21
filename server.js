@@ -1,126 +1,47 @@
 const express = require('express');
+const methodOverride = require('method-override');
 const mongoose = require('mongoose');
+const path = require('path');
+const plantsController = require('./controllers/plantsController');
+const { handleError } = require('./controllers/errorController');
+require('dotenv').config();
+
 const app = express();
-const ejs = require('ejs');
-const plantsData = require('./plants')
+const port = process.env.PORT || 3001;
 
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride('_method'));
 
-// Set EJS as the view engine
+// Set EJS as the view engine with a views folder
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-
-// Define the port number
-const port = 3005;
-
-
-require('dotenv').config();
 // Connect to your MongoDB database
-mongoose.connect(process.env.MONGODB_URI,)
-.then(() => {
-    console.log('MongoDB Connected');
-})
-.catch(err => console.error(err));
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.error(err));
 
-
-// Define the plant schema
-const plantSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    description: { type: String, required: true },
-    image: String
-});
-
-
-// Create the Plant model
-const Plant = mongoose.model('Plant', plantSchema);
-
-
-// Routes
-// Home page
+  
+// Serve the index.ejs file at the root route
 app.get('/', (req, res) => {
   res.render('index');
 });
 
+// Routes
+app.get('/plants/new', plantsController.newPlantForm);
+app.get('/plants', plantsController.listPlants);
+app.get('/plants/:id', plantsController.showPlant);
+app.post('/plants', plantsController.createPlant);
+app.get('/plants/:id/edit', plantsController.editPlantForm);
+app.put('/plants/:id', plantsController.updatePlant);
+app.delete('/plants/:id', plantsController.deletePlant);
 
-// List all plants
-app.get('/plants', (req, res) => {
-  Plant.find()
-    .then(plants => {
-      res.render('plants', { plants });
-    })
-    .catch(err => {
-      res.render('error', { message: 'Error fetching plants' });
-    });
-});
+// Error handling middleware
+app.use(handleError);
 
-
-// Show a specific plant
-app.get('/plants/:id', (req, res) => {
-  const { id } = req.params;
-  Plant.findById(id)
-    .then(plant => {
-      res.render('show', { plant });
-    })
-    .catch(err => {
-      res.render('error', { message: 'Plant not found' });
-    });
-});
-
-
-// Create a new plant
-app.get('/plants/new', (req, res) => {
-  res.render('create');
-});
-
-
-app.post('/plants', (req, res) => {
-  const newPlant = new Plant({
-    name: req.body.name,
-    description: req.body.description
-  });
-
-
-  newPlant.save()
-    .then(() => res.redirect('/plants'))
-    .catch(err => console.error(err));
-});
-
-
-// Edit a plant
-app.get('/plants/:id/edit', (req, res) => {
-  const { id } = req.params;
-  Plant.findById(id)
-    .then(plant => {
-      res.render('edit', { plant });
-    })
-    .catch(err => {
-      res.render('error', { message: 'Plant not found' });
-    });
-});
-
-
-app.put('/plants/:id', (req, res) => {
-  const { id } = req.params;
-  Plant.findByIdAndUpdate(id, req.body)
-    .then(() => res.redirect(`/plants/${id}`))
-    .catch(err => console.error(err));
-});
-
-
-// Delete a plant
-app.delete('/plants/:id', (req, res) => {
-  const { id } = req.params;
-  Plant.findByIdAndDelete(id)
-    .then(() => res.redirect('/plants'))
-    .catch(err => console.error(err));
-});
-
-
-// Route for static plants
-app.get('/static-plants', (req, res) => {
-  res.render('items', { plants: plantsData });
-});
 // Start the server
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});    
-
+  console.log(`Server is running on port ${port}`);
+});
