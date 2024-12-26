@@ -10,10 +10,18 @@
     }
     .container {
       margin-top: 50px;
+      background-color: #3a3a3a; /* Slightly lighter dark mode grey for contrast */
+      padding: 20px;
+      border-radius: 8px;
     }
     .btn-primary {
       background-color: #007bff;
       border-color: #007bff;
+    }
+    .list-group-item {
+      background-color: #3a3a3a; /* Match container background */
+      color: #ffffff; /* White text for contrast */
+      border: 1px solid #4a4a4a; /* Slightly darker border for separation */
     }
   </style>
 </head>
@@ -21,16 +29,17 @@
   <div class="container">
     <h1>List of Plants</h1>
     <% if (plants.length > 0) { %>
-      <ul class="list-group">
-        <% for (const plant of plants) { %>
+      <ul class="list-group mt-3">
+        <% plants.forEach(plant => { %>
           <li class="list-group-item">
-            <a href="/plants/<%= plant._id %>"><%= plant.name %></a>
+            <a href="/plants/<%= plant._id %>" style="color: #ffffff;"><%= plant.name %></a>
           </li>
-        <% } %>
+        <% }) %>
       </ul>
     <% } else { %>
       <p>No plants found.</p>
     <% } %>
+    <a href="/plants/new" class="btn btn-primary mt-3">Create New Plant</a>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M58nApc6YaTrJS+n0pcuBmwX47NL+8zVF4dZ0wPij4" crossorigin="anonymous"></script>
 </body>
